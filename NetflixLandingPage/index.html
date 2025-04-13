@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Netflix - Watch TV Shows Online, Watch Movies Online</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    /* Base Styles */
+    :root {
+      --netflix-red: #e50914;
+      --netflix-dark: #141414;
+      --netflix-light: #f3f3f3;
+      --netflix-gray: #757575;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    
+    body {
+      background-color: var(--netflix-dark);
+      color: white;
+      overflow-x: hidden;
+    }
+    
+    /* Loading Screen */
+    .loader-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--netflix-dark);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease;
+    }
+    
+    .loader {
+      width: 100px;
+      height: 100px;
+      border: 5px solid var(--netflix-gray);
+      border-top-color: var(--netflix-red);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Header */
+    header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 20px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      transition: background-color 0.3s ease;
+    }
+    
+    header.scrolled {
+      background-color: var(--netflix-dark);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+    
+    .logo {
+      height: 45px;
+      width: auto;
+    }
+    
+    .signin-btn {
+      background-color: var(--netflix-red);
+      color: white;
+      border: none;
+      padding: 8px 17px;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .signin-btn:hover {
+      background-color: #f40612;
+    }
+    
+    /* Hero Section */
+    .hero {
+      position: relative;
+      height: 100vh;
+      min-height: 600px;
+      background: url('https://assets.nflxext.com/ffe/siteui/vlv3/9d3533b2-0e2b-40b2-95e0-ecd7979cc88b/a3873901-5b7c-46eb-b9fa-12fea5197bd3/IN-en-20240311-popsignuptwoweeks-perspective_alpha_website_large.jpg') center/cover no-repeat;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 0 20px;
+    }
+    
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      background-image: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.8) 0,
+        rgba(0, 0, 0, 0) 60%,
+        rgba(0, 0, 0, 0.8) 100%
+      );
+    }
+    
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      padding: 0 20px;
+      animation: fadeInUp 1s ease;
+    }
+    
+    .headline {
+      font-size: 3.125rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      line-height: 1.1;
+    }
+    
+    .sub-headline {
+      font-size: 1.625rem;
+      font-weight: 400;
+      margin-bottom: 30px;
+    }
+    
+    .cta {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+    }
+    
+    .email-form {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .email-form input {
+      flex: 1;
+      min-width: 300px;
+      max-width: 500px;
+      height: 60px;
+      padding: 0 15px;
+      font-size: 16px;
+      border: 1px solid var(--netflix-gray);
+      border-radius: 4px;
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+    }
+    
+    .email-form input:focus {
+      outline: none;
+      border-color: white;
+    }
+    
+    .email-form button {
+      background-color: var(--netflix-red);
+      color: white;
+      border: none;
+      height: 60px;
+      padding: 0 24px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.2s ease;
+    }
+    
+    .email-form button:hover {
+      background-color: #f40612;
+    }
+    
+    .email-form button i {
+      margin-left: 10px;
+    }
+    
+    /* Suggestions Section */
+    .suggestions {
+      padding: 50px 5%;
+      background-color: var(--netflix-dark);
+    }
+    
+    .suggestions h2 {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    
+    .movie-card {
+      position: relative;
+      border-radius: 4px;
+      overflow: hidden;
+      transition: transform 0.3s ease;
+      aspect-ratio: 2/3;
+    }
+    
+    .movie-card:hover {
+      transform: scale(1.05);
+      z-index: 1;
+    }
+    
+    .movie-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.3s ease;
+    }
+    
+    .movie-card:hover img {
+      opacity: 0.7;
+    }
+    
+    .movie-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .movie-card:hover::after {
+      opacity: 1;
+    }
+    
+    /* Features Section */
+    .features {
+      padding: 70px 5%;
+      border-top: 8px solid #222;
+    }
+    
+    .feature {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 50px;
+      flex-wrap: wrap;
+    }
+    
+    .feature-text {
+      flex: 1;
+      min-width: 300px;
+      padding: 0 50px;
+    }
+    
+    .feature h2 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+    
+    .feature p {
+      font-size: 1.5rem;
+    }
+    
+    .feature-media {
+      flex: 1;
+      min-width: 300px;
+      position: relative;
+    }
+    
+    .feature-media img {
+      width: 100%;
+      z-index: 2;
+      position: relative;
+    }
+    
+    /* FAQ Section */
+    .faq {
+      padding: 70px 5%;
+      border-top: 8px solid #222;
+      text-align: center;
+    }
+    
+    .faq h2 {
+      font-size: 3rem;
+      margin-bottom: 40px;
+    }
+    
+    .faq-list {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .faq-item {
+      margin-bottom: 10px;
+    }
+    
+    .faq-question {
+      background-color: #303030;
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: background-color 0.2s ease;
+    }
+    
+    .faq-question:hover {
+      background-color: #404040;
+    }
+    
+    .faq-answer {
+      background-color: #303030;
+      color: white;
+      padding: 0 30px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.25s ease, padding 0.25s ease;
+      text-align: left;
+      border-top: 1px solid black;
+    }
+    
+    .faq-answer.open {
+      padding: 20px 30px;
+      max-height: 500px;
+    }
+    
+    /* Footer */
+    footer {
+      padding: 70px 5%;
+      border-top: 8px solid #222;
+      color: var(--netflix-gray);
+    }
+    
+    .footer-content {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .footer-links {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 30px 0;
+    }
+    
+    .footer-links a {
+      color: var(--netflix-gray);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      header {
+        padding: 15px 20px;
+      }
+      
+      .logo {
+        height: 35px;
+      }
+      
+      .headline {
+        font-size: 2rem;
+      }
+      
+      .sub-headline {
+        font-size: 1.25rem;
+      }
+      
+      .email-form {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .email-form input,
+      .email-form button {
+        width: 100%;
+        max-width: 100%;
+      }
+      
+      .feature {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .feature-text {
+        padding: 0;
+        margin-bottom: 30px;
+      }
+      
+      .faq h2 {
+        font-size: 2rem;
+      }
+      
+      .faq-question {
+        font-size: 1.1rem;
+        padding: 15px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div class="loader-wrapper">
+    <div class="loader"></div>
+  </div>
+
+  <!-- Hero Section -->
+  <div class="hero">
+    <div class="overlay"></div>
+    <header id="main-header">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg" alt="Netflix Logo" class="logo" />
+      <button class="signin-btn">Sign In</button>
+    </header>
+    <div class="content">
+      <h1 class="headline">Unlimited movies, TV shows, and more.</h1>
+      <h2 class="sub-headline">Watch anywhere. Cancel anytime.</h2>
+      <p class="cta">Ready to watch? Enter your email to create or restart your membership.</p>
+      <form class="email-form">
+        <input type="email" placeholder="Email address" required />
+        <button type="submit">Get Started <i class="fas fa-chevron-right"></i></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="feature">
+      <div class="feature-text">
+        <h2>Enjoy on your TV.</h2>
+        <p>Watch on Smart TVs, Playstation, Xbox, Chromecast, Apple TV, Blu-ray players, and more.</p>
+      </div>
+      <div class="feature-media">
+        <img src="https://assets.nflxext.com/ffe/siteui/acquisition/ourStory/fuji/desktop/tv.png" alt="TV" />
+      </div>
+    </div>
+    
+    <div class="feature">
+      <div class="feature-media">
+        <img src="https://assets.nflxext.com/ffe/siteui/acquisition/ourStory/fuji/desktop/mobile-0819.jpg" alt="Mobile" />
+      </div>
+      <div class="feature-text">
+        <h2>Download your shows to watch offline.</h2>
+        <p>Save your favorites easily and always have something to watch.</p>
+      </div>
+    </div>
+    
+    <div class="feature">
+      <div class="feature-text">
+        <h2>Watch everywhere.</h2>
+        <p>Stream unlimited movies and TV shows on your phone, tablet, laptop, and TV.</p>
+      </div>
+      <div class="feature-media">
+        <img src="https://assets.nflxext.com/ffe/siteui/acquisition/ourStory/fuji/desktop/device-pile.png" alt="Devices" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Suggestions Section -->
+  <section class="suggestions">
+    <h2>Popular on Netflix</h2>
+    <div class="movie-grid">
+      <div class="movie-card">
+        <img src="https://image.tmdb.org/t/p/w500/8YFL5QQVPy3AgrEQxNYVSgiPEbe.jpg" alt="Stranger Things" />
+      </div>
+      <div class="movie-card">
+        <img src="https://image.tmdb.org/t/p/w500/fOy2Jurz9k6RnJnMUMRDAgBwru2.jpg" alt="The Witcher" />
+      </div>
+      <div class="movie-card">
+        <img src="https://image.tmdb.org/t/p/w500/3G1Q5xF40HkUBJXxt2DQgQzKTp5.jpg" alt="Money Heist" />
+      </div>
+      <div class="movie-card">
+        <img src="https://image.tmdb.org/t/p/w500/9n2tJBplPbgR2ca05hS5CKXwP2c.jpg" alt="The Queen's Gambit" />
+      </div>
+      <div class="movie-card">
+        <img src="https://image.tmdb.org/t/p/w500/34m2tygAYBGqA9MXKhRDtzYd4MR.jpg" alt="Bridgerton" />
+      </div>
+      <div class="movie-card">
+        <img src="https://image.tmdb.org/t/p/w500/6kbAMLteGO8yyewYau6bJ683sw7.jpg" alt="Squid Game" />
+      </div>
+      <div class="movie-card">
+        <img src="https://image.tmdb.org/t/p/w500/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg" alt="Avengers: Endgame" />
+      </div>
+      <div class="movie-card">
+        <img src="https://image.tmdb.org/t/p/w500/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg" alt="The Irishman" />
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="faq">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-question">What is Netflix? <i class="fas fa-plus"></i></div>
+        <div class="faq-answer">
+          Netflix is a streaming service that offers a wide variety of award-winning TV shows, movies, anime, documentaries, and more on thousands of internet-connected devices.<br><br>
+          You can watch as much as you want, whenever you want without a single commercial – all for one low monthly price. There's always something new to discover and new TV shows and movies are added every week!
+        </div>
+      </div>
+      
+      <div class="faq-item">
+        <div class="faq-question">How much does Netflix cost? <i class="fas fa-plus"></i></div>
+        <div class="faq-answer">
+          Watch Netflix on your smartphone, tablet, Smart TV, laptop, or streaming device, all for one fixed monthly fee. Plans range from $9.99 to $19.99 a month. No extra costs, no contracts.
+        </div>
+      </div>
+      
+      <div class="faq-item">
+        <div class="faq-question">Where can I watch? <i class="fas fa-plus"></i></div>
+        <div class="faq-answer">
+          Watch anywhere, anytime. Sign in with your Netflix account to watch instantly on the web at netflix.com from your personal computer or on any internet-connected device that offers the Netflix app, including smart TVs, smartphones, tablets, streaming media players and game consoles.<br><br>
+          You can also download your favorite shows with the iOS, Android, or Windows 10 app. Use downloads to watch while you're on the go and without an internet connection. Take Netflix with you anywhere.
+        </div>
+      </div>
+    </div>
+    
+    <div class="content" style="margin-top: 50px;">
+      <p class="cta">Ready to watch? Enter your email to create or restart your membership.</p>
+      <form class="email-form">
+        <input type="email" placeholder="Email address" required />
+        <button type="submit">Get Started <i class="fas fa-chevron-right"></i></button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-content">
+      <p>Questions? Call 1-844-505-2993</p>
+      <div class="footer-links">
+        <a href="#">FAQ</a>
+        <a href="#">Help Center</a>
+        <a href="#">Account</a>
+        <a href="#">Media Center</a>
+        <a href="#">Investor Relations</a>
+        <a href="#">Jobs</a>
+        <a href="#">Ways to Watch</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Privacy</a>
+        <a href="#">Cookie Preferences</a>
+        <a href="#">Corporate Information</a>
+        <a href="#">Contact Us</a>
+        <a href="#">Speed Test</a>
+        <a href="#">Legal Notices</a>
+        <a href="#">Only on Netflix</a>
+      </div>
+      <p>Netflix - Clone for Educational Purposes</p>
+    </div>
+  </footer>
+
+  <script>
+    // Hide loader after page load
+    window.addEventListener("load", () => {
+      document.querySelector(".loader-wrapper").style.opacity = 0;
+      setTimeout(() => {
+        document.querySelector(".loader-wrapper").style.display = "none";
+      }, 500);
+    });
+    
+    // Header scroll effect
+    window.addEventListener("scroll", () => {
+      const header = document.getElementById("main-header");
+      if (window.scrollY > 50) {
+        header.classList.add("scrolled");
+      } else {
+        header.classList.remove("scrolled");
+      }
+    });
+    
+    // FAQ functionality
+    document.querySelectorAll('.faq-question').forEach(question => {
+      question.addEventListener('click', () => {
+        const answer = question.nextElementSibling;
+        const icon = question.querySelector('i');
+        
+        // Close all other answers first
+        document.querySelectorAll('.faq-answer').forEach(item => {
+          if (item !== answer && item.classList.contains('open')) {
+            item.classList.remove('open');
+            item.previousElementSibling.querySelector('i').classList.replace('fa-times', 'fa-plus');
+          }
+        });
+        
+        // Toggle current answer
+        answer.classList.toggle('open');
+        icon.classList.toggle('fa-plus');
+        icon.classList.toggle('fa-times');
+      });
+    });
+    
+    // Form submission (prevent default for demo)
+    document.querySelectorAll('.email-form').forEach(form => {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('This is a demo. Form submission is disabled.');
+      });
+    });
+  </script>
+</body>
+</html>
